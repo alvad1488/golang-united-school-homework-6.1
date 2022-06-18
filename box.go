@@ -1,7 +1,14 @@
 package golang_united_school_homework
 
 import (
+	"errors"
 	"fmt"
+)
+
+//constant errors
+var (
+	indexOutOfRange      error = errors.New("index out of range")
+	shapeNotFoundByIndex error = errors.New("by index shape not found")
 )
 
 // box contains list of shapes and able to perform operations on them
@@ -44,17 +51,47 @@ func (b *box) remove(i int) error {
 	return nil
 }
 
+func (b *box) checkSlice(i int) error {
+	len := len(b.shapes)
+	if i > len-1 {
+		return fmt.Errorf("%w", indexOutOfRange)
+	}
+	return nil
+}
+
+func (b *box) checkData(i int) (Shape, error) {
+	data := b.shapes[i]
+	if data == nil {
+		return data, fmt.Errorf("%w, index=%d", shapeNotFoundByIndex, i)
+	}
+	return data, nil
+}
+
+func (b *box) check(i int) (Shape, error) {
+	var (
+		err  error
+		data Shape
+	)
+
+	err = b.checkSlice(i)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err = b.checkData(i)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
 // GetByIndex allows getting shape by index
 // whether shape by index doesn't exist or index went out of the range, then it returns an error
 func (b *box) GetByIndex(i int) (Shape, error) {
-	len := len(b.shapes)
-	if i > len-1 {
-		return nil, fmt.Errorf("index out of range")
-	}
-
-	data := b.shapes[i]
-	if data == nil {
-		return data, fmt.Errorf("by index %d shape not found", i)
+	data, err := b.check(i)
+	if err != nil {
+		return nil, err
 	}
 
 	return data, nil
@@ -63,14 +100,9 @@ func (b *box) GetByIndex(i int) (Shape, error) {
 // ExtractByIndex allows getting shape by index and removes this shape from the list.
 // whether shape by index doesn't exist or index went out of the range, then it returns an error
 func (b *box) ExtractByIndex(i int) (Shape, error) {
-	len := len(b.shapes)
-	if i > len-1 {
-		return nil, fmt.Errorf("index out of range")
-	}
-
-	data := b.shapes[i]
-	if data == nil {
-		return data, fmt.Errorf("by index %d shape not found", i)
+	data, err := b.check(i)
+	if err != nil {
+		return nil, err
 	}
 
 	b.remove(i)
@@ -80,14 +112,9 @@ func (b *box) ExtractByIndex(i int) (Shape, error) {
 // ReplaceByIndex allows replacing shape by index and returns removed shape.
 // whether shape by index doesn't exist or index went out of the range, then it returns an error
 func (b *box) ReplaceByIndex(i int, shape Shape) (Shape, error) {
-	len := len(b.shapes)
-	if i > len-1 {
-		return nil, fmt.Errorf("index out of range")
-	}
-
-	data := b.shapes[i]
-	if data == nil {
-		return data, fmt.Errorf("by index %d shape not found", i)
+	data, err := b.check(i)
+	if err != nil {
+		return nil, err
 	}
 
 	b.shapes[i] = shape
